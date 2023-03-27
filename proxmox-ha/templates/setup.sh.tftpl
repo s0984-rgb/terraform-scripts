@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# THIS SCRIPT IS RUN ONCE ON CREATION BY TERRAFORM REMOTE-EXEC PROVISIONNER
+
+# This script is intended to provide HA to the Proxmox cluster itself.
+# With a 3 node setup, we can have 2 LXC containers distributed accross multiple nodes running keepalived and haproxy to provide an HA entrypoint for the cluster
+# This provides the added benefit of having an http or https ingress as compared to the standard port 8006
+# This can then be tied into more extensible features like using Terraform providers to manage Proxmox cluster and guaranteeing service availability.
+# This bootstrap is designed to be run on one node in the cluster, an account that has necessary priviledges to start LXC containers on every node in the cluster.
+# See https://registry.terraform.io/providers/Telmate/proxmox/latest/docs
+ 
+# Requirements:
+# - A multinode Proxmox cluster
+# - An account provisioned with necessary permissions in Proxmox as per https://registry.terraform.io/providers/Telmate/proxmox/latest/docs
+# - An LXC container to pass this script to
+
+# Setup keepalived and haproxy
+# https://www.learnitguide.net/2021/11/configure-ha-cluster-using-keepalived.html?m=1
+
+apt update && apt install -y keepalived haproxy vim
+echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
+sysctl -p /etc/sysctl.conf
+
+tee /etc/haproxy/haproxy.cfg << EOT >/dev/null
+global
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+    # Default SSL material locations
+    ca-base /etc/ssl/certs
+    crt-base /etc/ssl/private
+
+    # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate
+    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+
+defaults
+    log     global
+    mode    http
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+    errorfile 400 /etc/haproxy/errors/400.http
+    errorfile 403 /etc/haproxy/errors/403.http
+    errorfile 408 /etc/haproxy/errors/408.http
+    errorfile 500 /etc/haproxy/errors/500.http
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+    errorfile 504 /etc/haproxy/errors/504.http
+
+
+frontend myweb
+    bind ${VIRTUAL_IP}:443
+    option tcplog
+    mode tcp
+    default_backend web-servers
+
+backend web-servers
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    cookie SERVER_USED insert indirect nocache dynamic
+
+    # Change these hosts to suite your needs
+    server pve1.homelab.local pve1.homelab.local:8006 check
+    server pve2.homelab.local pve2.homelab.local:8006 check
+    server pve3.homelab.local pve3.homelab.local:8006 check
+    dynamic-cookie-key  cookiesecret123
+EOT
+
+tee /etc/keepalived/keepalived.conf << EOT >/dev/null
+# Define the script used to check if haproxy is still working
+vrrp_script chk_haproxy {
+    script "killall -0 haproxy"
+    interval 2
+    weight 2
+}
+# Configuation for the virtual interface
+vrrp_instance VI_1 {
+    interface ${INTERFACE}
+    state ${ROLE} # set this to BACKUP on the other machine
+    priority ${PRIORITY}        # set this to 100 on the other machine
+    virtual_router_id ${VIRTUAL_ROUTER}
+    # The virtual ip address shared between the two loadbalancers
+    virtual_ipaddress {
+        ${VIRTUAL_IP}
+    }
+    # Use the script above to check if we should fail over
+    track_script {
+        chk_haproxy
+    }
+}
+EOT
+
+systemctl restart keepalived haproxy
+systemctl enable keepalived haproxy

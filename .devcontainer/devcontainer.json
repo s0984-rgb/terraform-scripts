@@ -1,0 +1,10 @@
+{
+	"name": "Terraform - Dev Container",
+	"dockerComposeFile": ["docker-compose.yml"],
+	"service": "devcontainer",
+	"workspaceFolder": "/terraform/",
+	"extensions": [
+		"hashicorp.terraform",
+		"hashicorp.hcl"
+	]
+}
