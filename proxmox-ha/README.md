@@ -31,12 +31,13 @@ See the [Terraform Docs](TERRAFORMDOCS.MD) for more information about the resour
 
 This project uses `direnv`.
 
-1) Copy the file `.env/proxmox.env.dist` and rename it `.env/proxmox.env`
-2) Follow the [instructions](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs) to configure Proxmox with the necessary roles, users, permissions, and configure your API token
-3) Retrieve the root API token from Pihole
-4) Configure `.env/proxmox.env` with the values for your setup
-5) Configure `terraform.tfvars` in this directory to pass to Terraform
-5) Run the `terraform init`, `plan` and `apply` commands
+1) Launch the [dev container](https://code.visualstudio.com/docs/devcontainers/containers) in this repo
+2) Copy the file `.env/proxmox.env.dist` and rename it `.env/proxmox.env`
+3) Follow the [instructions](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs) to configure Proxmox with the necessary roles, users, permissions, and configure your API token
+4) Retrieve the root API token from Pihole
+5) Configure `.env/proxmox.env` with the values for your setup
+6) Configure `terraform.tfvars` in this directory to pass to Terraform
+7) Run the `terraform init`, `plan` and `apply` commands
 
 ## Results
 
