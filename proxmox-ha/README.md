@@ -18,6 +18,12 @@ In order to use these scripts you will require a few things:
 - A private and public ssh key found at `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub` respectively
 - At least 3 free IP addresses in your network
   - 1 for the MASTER haproxy, 1 for the BACKUP haproxy and 1 floating IP between the 2 LXCs
+- A [pihole](https://pi-hole.net/) configured as your local DNS for your network, with an A record `pihole.<LOCAL_DOMAIN>` pointing to the IP address of your pihole 
+
+example:
+```bash
+pihole.example.local A 192.168.0.2
+```
 
 See the [Terraform Docs](TERRAFORMDOCS.MD) for more information about the resources and variables used in the scripts
 
