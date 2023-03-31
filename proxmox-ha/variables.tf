@@ -1,31 +1,22 @@
-#############################
-#### API Authentication #####
-#############################
-
+// API Authentication
 variable "PIHOLE_API_KEY" {
   type        = string
   description = "Pihole API to create DNS entries"
   sensitive   = true
 }
 
-#############################
-######     Proxmox     ######
-#############################
-
+// Proxmox
 variable "PM_MASTER_NODE" {
   type        = string
   description = "Proxmox node that will host the MASTER LXC (e.g. pve1)"
 }
 
-variable "PM_BACKUP_NODE" {
-  type        = string
-  description = "Proxmox node that will host the BACKUP LXC (e.g. pve2)"
+variable "PM_BACKUP_NODES" {
+  type        = list(string)
+  description = "List of proxmox node(s) that will host the BACKUP LXC(s) (e.g. [\"pve2\", \"pve3\"])"
 }
 
-#############################
-######   Netowrking    ######
-#############################
-
+// Netowrking
 variable "VIRTUAL_IP" {
   type        = string
   description = "Virtual IP to assign to Proxmox keepalived"
@@ -63,9 +54,9 @@ variable "MASTER_IP" {
   description = "IP address of the first LXC container"
 }
 
-variable "BACKUP_IP" {
-  type        = string
-  description = "IP address of the second LXC container"
+variable "BACKUP_IPS" {
+  type        = list(string)
+  description = "List of IP addresses for the backup LXC container(s)"
 }
 
 variable "CIDR_BLOCK" {
@@ -73,10 +64,7 @@ variable "CIDR_BLOCK" {
   description = "CIDR block used for the netowkr (e.g. '24' for /24)"
 }
 
-#############################
-##### LXC Configuration #####
-#############################
-
+// LXC Configuration
 variable "LXC_TEMPLATE" {
   type        = string
   description = "Location of the LXC template to use for the container"
@@ -91,7 +79,6 @@ variable "LXC_PASSWORD" {
 variable "STORAGE_NAME" {
   type        = string
   description = "Storage of the disk space for LXC"
-  default     = "local-lvm"
 }
 
 variable "STORAGE_SIZE" {
@@ -110,4 +97,9 @@ variable "CORES" {
   type        = number
   description = "Number of cores for the LXC container"
   default     = 1
+}
+
+variable "BACKUP_COUNT" {
+  type        = number
+  description = "Number of BACKUP LXC containers"
 }

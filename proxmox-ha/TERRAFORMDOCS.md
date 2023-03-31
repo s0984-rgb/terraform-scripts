@@ -29,7 +29,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_BACKUP_IP"></a> [BACKUP\_IP](#input\_BACKUP\_IP) | IP address of the second LXC container | `string` | n/a | yes |
+| <a name="input_BACKUP_COUNT"></a> [BACKUP\_COUNT](#input\_BACKUP\_COUNT) | Number of BACKUP LXC containers | `number` | n/a | yes |
+| <a name="input_BACKUP_IPS"></a> [BACKUP\_IPS](#input\_BACKUP\_IPS) | List of IP addresses for the backup LXC container(s) | `list(string)` | n/a | yes |
 | <a name="input_BRIDGE_NAME"></a> [BRIDGE\_NAME](#input\_BRIDGE\_NAME) | Default interface name of instance | `string` | `"vmbr0"` | no |
 | <a name="input_CIDR_BLOCK"></a> [CIDR\_BLOCK](#input\_CIDR\_BLOCK) | CIDR block used for the netowkr (e.g. '24' for /24) | `string` | n/a | yes |
 | <a name="input_CORES"></a> [CORES](#input\_CORES) | Number of cores for the LXC container | `number` | `1` | no |
@@ -42,9 +43,9 @@ No modules.
 | <a name="input_MEMORY"></a> [MEMORY](#input\_MEMORY) | Memory of the LXC container | `number` | `256` | no |
 | <a name="input_NAMESERVER"></a> [NAMESERVER](#input\_NAMESERVER) | Nameserver IP address | `string` | n/a | yes |
 | <a name="input_PIHOLE_API_KEY"></a> [PIHOLE\_API\_KEY](#input\_PIHOLE\_API\_KEY) | Pihole API to create DNS entries | `string` | n/a | yes |
-| <a name="input_PM_BACKUP_NODE"></a> [PM\_BACKUP\_NODE](#input\_PM\_BACKUP\_NODE) | Proxmox node that will host the BACKUP LXC (e.g. pve2) | `string` | n/a | yes |
+| <a name="input_PM_BACKUP_NODES"></a> [PM\_BACKUP\_NODES](#input\_PM\_BACKUP\_NODES) | List of proxmox node(s) that will host the BACKUP LXC(s) (e.g. ["pve2", "pve3"]) | `list(string)` | n/a | yes |
 | <a name="input_PM_MASTER_NODE"></a> [PM\_MASTER\_NODE](#input\_PM\_MASTER\_NODE) | Proxmox node that will host the MASTER LXC (e.g. pve1) | `string` | n/a | yes |
-| <a name="input_STORAGE_NAME"></a> [STORAGE\_NAME](#input\_STORAGE\_NAME) | Storage of the disk space for LXC | `string` | `"local-lvm"` | no |
+| <a name="input_STORAGE_NAME"></a> [STORAGE\_NAME](#input\_STORAGE\_NAME) | Storage of the disk space for LXC | `string` | n/a | yes |
 | <a name="input_STORAGE_SIZE"></a> [STORAGE\_SIZE](#input\_STORAGE\_SIZE) | Storage size of the disk for LXC | `string` | `"8G"` | no |
 | <a name="input_VIRTUAL_IP"></a> [VIRTUAL\_IP](#input\_VIRTUAL\_IP) | Virtual IP to assign to Proxmox keepalived | `string` | n/a | yes |
 

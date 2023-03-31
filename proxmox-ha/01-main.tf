@@ -29,14 +29,18 @@ resource "proxmox_lxc" "haproxy_master" {
 
   ssh_public_keys = file("~/.ssh/id_rsa.pub")
 
+  // Template node setup script
   provisioner "file" {
     destination = "/tmp/setup.sh"
     content = templatefile("${path.module}/templates/setup.sh.tftpl", {
-      INTERFACE      = "${proxmox_lxc.haproxy_master.network[0].name}"
-      ROLE           = "MASTER"
-      PRIORITY       = 101
-      VIRTUAL_ROUTER = "51"
-      VIRTUAL_IP     = var.VIRTUAL_IP
+      INTERFACE       = "${proxmox_lxc.haproxy_master.network[0].name}"
+      ROLE            = "MASTER"
+      PRIORITY        = 200
+      VIRTUAL_ROUTER  = "51"
+      VIRTUAL_IP      = var.VIRTUAL_IP
+      LOCAL_DOMAIN    = var.LOCAL_DOMAIN
+      PM_MASTER_NODE  = var.PM_MASTER_NODE
+      PM_BACKUP_NODES = var.PM_BACKUP_NODES
     })
     connection {
       type        = "ssh"
@@ -46,6 +50,7 @@ resource "proxmox_lxc" "haproxy_master" {
     }
   }
 
+  // Execute script
   provisioner "remote-exec" {
     inline = ["bash /tmp/setup.sh"]
     connection {
@@ -58,7 +63,8 @@ resource "proxmox_lxc" "haproxy_master" {
 }
 
 resource "proxmox_lxc" "haproxy_backup" {
-  target_node  = var.PM_BACKUP_NODE
+  count        = var.BACKUP_COUNT
+  target_node  = var.PM_BACKUP_NODES[count.index]
   hostname     = "haproxy-backup"
   onboot       = true
   startup      = "order=1"
@@ -82,35 +88,40 @@ resource "proxmox_lxc" "haproxy_backup" {
   network {
     name   = var.INTERFACE_NAME
     bridge = var.BRIDGE_NAME
-    ip     = "${var.BACKUP_IP}/${var.CIDR_BLOCK}"
+    ip     = "${var.BACKUP_IPS[count.index]}/${var.CIDR_BLOCK}"
     gw     = var.GATEWAY
   }
 
   ssh_public_keys = file("~/.ssh/id_rsa.pub")
 
+  // Template node setup script
   provisioner "file" {
     destination = "/tmp/setup.sh"
     content = templatefile("${path.module}/templates/setup.sh.tftpl", {
-      INTERFACE      = "${proxmox_lxc.haproxy_backup.network[0].name}"
-      ROLE           = "BACKUP"
-      PRIORITY       = 100
-      VIRTUAL_ROUTER = "51"
-      VIRTUAL_IP     = var.VIRTUAL_IP
+      INTERFACE       = "${proxmox_lxc.haproxy_backup[count.index].network[0].name}"
+      ROLE            = "BACKUP"
+      PRIORITY        = "10${count.index}"
+      VIRTUAL_ROUTER  = "51"
+      VIRTUAL_IP      = var.VIRTUAL_IP
+      LOCAL_DOMAIN    = var.LOCAL_DOMAIN
+      PM_MASTER_NODE  = var.PM_MASTER_NODE
+      PM_BACKUP_NODES = var.PM_BACKUP_NODES
     })
     connection {
       type        = "ssh"
       user        = "root"
-      host        = var.BACKUP_IP
+      host        = var.BACKUP_IPS[count.index]
       private_key = file("~/.ssh/id_rsa")
     }
   }
 
+  // Execute script
   provisioner "remote-exec" {
     inline = ["bash /tmp/setup.sh"]
     connection {
       type        = "ssh"
       user        = "root"
-      host        = var.BACKUP_IP
+      host        = var.BACKUP_IPS[count.index]
       private_key = file("~/.ssh/id_rsa")
     }
   }

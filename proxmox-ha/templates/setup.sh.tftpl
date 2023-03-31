@@ -18,8 +18,11 @@
 # https://www.learnitguide.net/2021/11/configure-ha-cluster-using-keepalived.html?m=1
 
 apt update && apt install -y keepalived haproxy vim
-echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
-sysctl -p /etc/sysctl.conf
+grep 'net.ipv4.ip_nonlocal_bind=1' /etc/sysctl.conf >/dev/null
+if [ $? -ne 0 ]; then
+    echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
+    sysctl -p /etc/sysctl.conf
+fi
 
 tee /etc/haproxy/haproxy.cfg << EOT >/dev/null
 global
@@ -64,13 +67,12 @@ backend web-servers
     mode tcp
     balance roundrobin
     option tcp-check
-    cookie SERVER_USED insert indirect nocache dynamic
 
     # Change these hosts to suite your needs
-    server pve1.homelab.local pve1.homelab.local:8006 check
-    server pve2.homelab.local pve2.homelab.local:8006 check
-    server pve3.homelab.local pve3.homelab.local:8006 check
-    dynamic-cookie-key  cookiesecret123
+    server ${PM_MASTER_NODE}.${LOCAL_DOMAIN} ${PM_MASTER_NODE}.${LOCAL_DOMAIN}:8006 check
+    %{ for host in PM_BACKUP_NODES }
+    server ${host}.${LOCAL_DOMAIN} ${host}.${LOCAL_DOMAIN}:8006 check backup
+    %{ endfor }
 EOT
 
 tee /etc/keepalived/keepalived.conf << EOT >/dev/null

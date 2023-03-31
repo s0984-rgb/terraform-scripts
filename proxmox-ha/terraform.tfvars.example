@@ -1,13 +1,22 @@
+// LXC Configuration
 LXC_TEMPLATE = "iso:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
 LXC_PASSWORD = "supersecretpassword"
+STORAGE_NAME = "local-lvm"
+STORAGE_SIZE = "8G"
+MEMORY       = 256
+CORES        = 1
+// Will create only 2 BACKUP haproxy/keepalived LXC
+BACKUP_COUNT = 2
 
+// Netowrking
+GATEWAY      = "192.168.0.1"
+NAMESERVER   = "192.168.0.2"
 VIRTUAL_IP   = "192.168.0.3"
 MASTER_IP    = "192.168.0.4"
-BACKUP_IP    = "192.168.0.5"
-NAMESERVER   = "192.168.0.2"
-LOCAL_DOMAIN = "homelab.local"
-GATEWAY      = "192.168.0.1"
+BACKUP_IPS   = ["192.168.0.5", "192.168.0.6"]
+LOCAL_DOMAIN = "example.local"
 CIDR_BLOCK   = "24"
 
-PM_MASTER_NODE = "pve1"
-PM_BACKUP_NODE = "pve2"
+// Proxmox
+PM_MASTER_NODE  = "pve1"
+PM_BACKUP_NODES = ["pve2", "pve3"]
