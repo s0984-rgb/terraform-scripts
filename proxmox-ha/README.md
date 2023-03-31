@@ -25,7 +25,7 @@ example:
 pihole.example.local A 192.168.0.2
 ```
 
-See the [Terraform Docs](TERRAFORMDOCS.MD) for more information about the resources and variables used in the scripts
+See the [Terraform Docs](TERRAFORMDOCS.md) for more information about the resources and variables used in the scripts
 
 ## Getting Started
 
