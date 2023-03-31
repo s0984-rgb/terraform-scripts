@@ -42,9 +42,3 @@ This project uses `direnv`.
 ## Results
 
 You will end up with an ingress `pve.your_local_domain` that will be redirected to a virtual IP shared between both LXC containers in a MASTER/BACKUP configuration.
-
-## Adendum
-
-It is possible to create multiple BACKUP LXCs however this script only creates 2 small LXCs for loadbalancing
-
-To do this, you can simply add a `count` parameter to the BACKUP LXC resource definition. For a small homelab setup, 2 LXCs should suffice.
