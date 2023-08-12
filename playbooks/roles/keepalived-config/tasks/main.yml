@@ -1,0 +1,12 @@
+---
+- name: Copy keepalived backup config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: templates/keepalived.conf.j2
+      dest: /etc/keepalived/keepalived.conf
+  notify: restart keepalived

@@ -1,0 +1,17 @@
+---
+# tasks file for retry
+- name: test connection to inventory
+  command: bash -c "/usr/bin/nc -z -w 10 {{ item }} 22"
+  loop: "{{ server_group }}"
+  register: connection_result
+  until: connection_result is not failed
+  changed_when: "'RETRYING' in connection_result.stderr"
+  retries: 30
+  delay: 5
+- name: Accept SSH host keys
+  shell: |
+    ssh-keygen -F {{ item }} || 
+      ssh-keyscan -H {{ item }} >> ~/.ssh/known_hosts
+  register: known_hosts_script
+  changed_when: "'found' not in known_hosts_script.stdout"
+  loop: "{{ server_group }}"

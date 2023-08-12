@@ -1,0 +1,58 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Create 2 Ubunutu 20.04 VMs to test ansible
+# We force the MAC as Hyper-v provider lacks the ability to set IP address
+# https://developer.hashicorp.com/vagrant/docs/providers/hyperv/configuration
+# We can set DHCP to provide static IP addresses to these machines (DHCP not included)
+Vagrant.configure("2") do |config|
+	# https://www.vagrantup.com/docs/providers/virtualbox
+  # config.vm.provider "virtualbox" do |vb|
+  #   vb.cpus = "2"
+  #   vb.memory = "2048"
+  # end
+
+	config.vm.define "test0" do |test0|
+		test0.vm.box = "generic/ubuntu2004"
+		test0.vm.provider "hyperv" do |hv|
+			hv.cpus = "2"
+			hv.memory = "2048"
+			hv.enable_enhanced_session_mode = true
+			hv.mac = "00:15:5d:38:01:12"
+			hv.vmname = "test0"
+		end
+    config.vm.provider "virtualbox" do |vb|
+      vb.cpus = "2"
+      vb.memory = "2048"
+      vb.base_mac = "00:15:5d:38:01:12"
+    end
+	end
+
+	config.vm.define "test1" do |test1|
+		test1.vm.box = "generic/ubuntu2004"
+		test1.vm.provider "hyperv" do |hv|
+			hv.cpus = "2"
+			hv.memory = "2048"
+			hv.enable_enhanced_session_mode = true
+			hv.mac = "00:15:5d:38:01:13"
+			hv.vmname = "test1"
+		end
+    config.vm.provider "virtualbox" do |vb|
+      vb.cpus = "2"
+      vb.memory = "2048"
+      vb.base_mac = "00:15:5d:38:01:13"
+    end
+	end
+
+	# Uncomment this section to add a local public key as an authorized key on the VM
+	# config.vm.provision "file" do |f|
+	# 	f.source = "./id_rsa.pub"
+	# 	f.destination = "~/.ssh/authorized_keys"
+	# end
+  
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  # config.vm.box = "base"
+  # config.vm.box = "generic/debian10"
+  # config.vm.box = "hashicorp/bionic64"
+end

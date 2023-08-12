@@ -1,0 +1,9 @@
+---
+- name: Open {{ item }} in firewalld
+  ansible.posix.firewalld:
+    permanent: true
+    state: enabled
+    port: "{{ item }}"
+  loop: "{{ ports }}"
+  notify: reload firewalld
+  when: ansible_pkg_mgr == "dnf"

@@ -1,23 +1,34 @@
-# Note: You can use any Debian/Ubuntu based image you want. 
-FROM rockylinux:9.1
+FROM python:alpine
 ARG USER
 
-# Prerequisites
-RUN dnf install -y git which yum-utils
+# Install ansible
+RUN python3 -m pip install --upgrade pip ansible
 
 # Terraform
-RUN yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-RUN dnf install -y terraform
+COPY --from=hashicorp/terraform:latest /bin/terraform /bin/terraform
 
 # Terraform docs
-RUN curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
-RUN tar -xzf terraform-docs.tar.gz
-RUN chmod +x terraform-docs
-RUN mv terraform-docs /usr/local/bin/terraform-docs
-RUN rm -rf terraform-docs.tar.gz
+COPY --from=quay.io/terraform-docs/terraform-docs:latest /usr/local/bin/terraform-docs /usr/local/bin/terraform-docs
 
-RUN adduser --shell /bin/bash --uid 1000 ${USER}
+# Add base packages
+RUN apk add --no-cache bash curl openssl openssh git perl direnv nomad util-linux gnupg 
+
+# Create custom user
+RUN adduser -s /bin/bash -u 1000 -D ${USER}
 COPY --chown=${USER}:${USER} ./.bashrc /home/${USER}/
-RUN curl -sfL https://direnv.net/install.sh | bash
-RUN terraform-docs completion bash > ~/.terraform-docs-completion
+COPY --chown=${USER}:${USER} ./.profile /home/${USER}/
+
+# Create VSCode folder
+RUN mkdir -p /home/${USER}/.vscode-server/extensions \
+  /home/${USER}/.vscode-server-insiders/extensions
+RUN chown -R ${USER} \
+  /home/${USER}/.vscode-server \
+  /home/${USER}/.vscode-server-insiders
+
 USER ${USER}
+
+# Install and configure fzf
+RUN git clone --depth 1 https://github.com/junegunn/fzf.git /home/${USER}/.fzf \
+  && /home/${USER}/.fzf/install --all
+
+ENTRYPOINT [ "sleep", "infinity" ]

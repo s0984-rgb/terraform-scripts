@@ -1,0 +1,54 @@
+---
+- name: install docker-ce repo (Debian)
+  when: ansible_pkg_mgr == "apt"
+  block:
+    - name: docker | no apt key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /usr/share/keyrings/docker.asc
+        mode: 0644
+        force: true
+    - name: docker | apt source
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable main"
+        state: present
+- name: install docker-ce repo (RHEL)
+  ansible.builtin.yum_repository:
+    name: docker-ce
+    description: RPM repository for docker-ce products
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    enabled: true
+  when: ansible_pkg_mgr == "dnf"
+- name: Install docker-ce
+  package:
+    name: docker-ce
+    state: present
+    update_cache: yes
+- name: Install docker-ce-cli
+  package:
+    name: docker-ce-cli
+    state: present
+    update_cache: yes
+- name: Install containerd.io
+  package:
+    name: containerd.io
+    state: present
+    update_cache: yes
+- name: Install docker-buildx-plugin
+  package:
+    name: docker-buildx-plugin
+    state: present
+    update_cache: yes
+- name: Install docker-compose-plugin
+  package:
+    name: docker-compose-plugin
+    state: present
+    update_cache: yes
+- name: Make sure docker is started
+  service:
+    name: docker
+    state: started
+    enabled: yes
+- name: Indicate docker is installed
+  set_fact: docker_installed=true

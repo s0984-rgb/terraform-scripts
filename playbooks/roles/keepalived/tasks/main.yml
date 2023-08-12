@@ -1,0 +1,22 @@
+---
+- name: Install keepalived
+  package:
+    name: keepalived
+    state: present
+    update_cache: yes
+- name: Allow nonlocal ip binding
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: templates/sysctl.conf.j2
+      dest: /etc/sysctl.conf
+  notify: reload sysctl
+- name: Make sure keepalived is running
+  service:
+    name: keepalived
+    state: started
+    enabled: yes

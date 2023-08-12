@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['keepalived'] }}"
+- hosts: keepalived
+  become: yes
+  roles:
+    - keepalived
+- hosts: keepalived_primary
+  become: yes
+  roles:
+    - keepalived-config
+  vars:
+    role: MASTER
+    priority: 200
+- hosts: keepalived_backup
+  become: yes
+  roles:
+    - keepalived-config
+  vars:
+    role: BACKUP
+    priority: 100

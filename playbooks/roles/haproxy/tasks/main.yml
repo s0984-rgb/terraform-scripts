@@ -1,0 +1,27 @@
+---
+- name: install haproxy
+  package:
+    name: haproxy
+    state: present
+    update_cache: yes
+- name: copy haproxy config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: templates/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+  notify: restart haproxy
+- name: create required directories
+  ansible.builtin.file:
+    path: /run/haproxy
+    state: directory
+  when: ansible_pkg_mgr == "dnf"
+- name: make sure haproxy is running
+  service:
+    name: haproxy
+    state: started
+    enabled: yes

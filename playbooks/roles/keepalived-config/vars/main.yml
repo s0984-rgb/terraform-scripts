@@ -1,0 +1,3 @@
+---
+interface: eth0
+virtual_router: 51

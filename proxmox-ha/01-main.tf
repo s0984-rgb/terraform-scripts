@@ -27,45 +27,13 @@ resource "proxmox_lxc" "haproxy_master" {
     gw     = var.GATEWAY
   }
 
-  ssh_public_keys = file("~/.ssh/id_rsa.pub")
-
-  // Template node setup script
-  provisioner "file" {
-    destination = "/tmp/setup.sh"
-    content = templatefile("${path.module}/templates/setup.sh.tftpl", {
-      INTERFACE       = "${proxmox_lxc.haproxy_master.network[0].name}"
-      ROLE            = "MASTER"
-      PRIORITY        = 200
-      VIRTUAL_ROUTER  = "51"
-      VIRTUAL_IP      = var.VIRTUAL_IP
-      LOCAL_DOMAIN    = var.LOCAL_DOMAIN
-      PM_MASTER_NODE  = var.PM_MASTER_NODE
-      PM_BACKUP_NODES = var.PM_BACKUP_NODES
-    })
-    connection {
-      type        = "ssh"
-      user        = "root"
-      host        = var.MASTER_IP
-      private_key = file("~/.ssh/id_rsa")
-    }
-  }
-
-  // Execute script
-  provisioner "remote-exec" {
-    inline = ["bash /tmp/setup.sh"]
-    connection {
-      type        = "ssh"
-      user        = "root"
-      host        = var.MASTER_IP
-      private_key = file("~/.ssh/id_rsa")
-    }
-  }
+  ssh_public_keys = file(var.public_key)
 }
 
 resource "proxmox_lxc" "haproxy_backup" {
   count        = var.BACKUP_COUNT
   target_node  = var.PM_BACKUP_NODES[count.index]
-  hostname     = "haproxy-backup"
+  hostname     = "haproxy-backup${count.index}"
   onboot       = true
   startup      = "order=1"
   ostemplate   = var.LXC_TEMPLATE
@@ -92,37 +60,5 @@ resource "proxmox_lxc" "haproxy_backup" {
     gw     = var.GATEWAY
   }
 
-  ssh_public_keys = file("~/.ssh/id_rsa.pub")
-
-  // Template node setup script
-  provisioner "file" {
-    destination = "/tmp/setup.sh"
-    content = templatefile("${path.module}/templates/setup.sh.tftpl", {
-      INTERFACE       = "${proxmox_lxc.haproxy_backup[count.index].network[0].name}"
-      ROLE            = "BACKUP"
-      PRIORITY        = "10${count.index}"
-      VIRTUAL_ROUTER  = "51"
-      VIRTUAL_IP      = var.VIRTUAL_IP
-      LOCAL_DOMAIN    = var.LOCAL_DOMAIN
-      PM_MASTER_NODE  = var.PM_MASTER_NODE
-      PM_BACKUP_NODES = var.PM_BACKUP_NODES
-    })
-    connection {
-      type        = "ssh"
-      user        = "root"
-      host        = var.BACKUP_IPS[count.index]
-      private_key = file("~/.ssh/id_rsa")
-    }
-  }
-
-  // Execute script
-  provisioner "remote-exec" {
-    inline = ["bash /tmp/setup.sh"]
-    connection {
-      type        = "ssh"
-      user        = "root"
-      host        = var.BACKUP_IPS[count.index]
-      private_key = file("~/.ssh/id_rsa")
-    }
-  }
+  ssh_public_keys = file(var.public_key)
 }

@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['haproxy'] }}"
+- hosts: haproxy
+  become: yes
+  roles:
+    - haproxy

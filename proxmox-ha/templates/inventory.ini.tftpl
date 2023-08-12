@@ -1,0 +1,22 @@
+# [localhost]
+localhost ansible_connection=local
+
+[proxmox]
+%{ for host in proxmox_hostnames ~}
+${host}.${local_domain}
+%{ endfor ~}
+
+[keepalived_primary]
+${keepalived_primary_host} ansible_user=root
+
+[keepalived_backup]
+%{ for host in keepalived_backup_hosts ~}
+${host} ansible_user=root
+%{ endfor ~}
+
+[keepalived:children]
+keepalived_primary
+keepalived_backup
+
+[haproxy:children]
+keepalived

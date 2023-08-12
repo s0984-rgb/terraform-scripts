@@ -1,11 +1,26 @@
 // API Authentication
 variable "PIHOLE_API_KEY" {
   type        = string
-  description = "Pihole API to create DNS entries"
+  description = "Pihole API Key to create DNS entries"
   sensitive   = true
 }
 
+variable "pihole_url" {
+  type        = string
+  description = "Pihole API URL"
+}
+
 // Proxmox
+variable "proxmox_endpoint" {
+  type        = string
+  description = "Proxmox API endpoint"
+}
+
+variable "proxmox_url" {
+  type        = string
+  description = "DNS entry for proxmox HA"
+}
+
 variable "PM_MASTER_NODE" {
   type        = string
   description = "Proxmox node that will host the MASTER LXC (e.g. pve1)"
@@ -65,6 +80,22 @@ variable "CIDR_BLOCK" {
 }
 
 // LXC Configuration
+variable "private_key" {
+  type        = string
+  description = "Private key to use to ssh into LXC"
+}
+
+variable "public_key" {
+  type        = string
+  description = "Public key to copy onto LXC"
+}
+
+variable "private_key_password" {
+  type        = string
+  description = "Private key password"
+  sensitive   = true
+}
+
 variable "LXC_TEMPLATE" {
   type        = string
   description = "Location of the LXC template to use for the container"
