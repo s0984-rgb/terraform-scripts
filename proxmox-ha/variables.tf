@@ -22,7 +22,7 @@ variable "proxmox_url" {
 }
 
 variable "PM_MASTER_NODE" {
-  type        = string
+  type        = list(string)
   description = "Proxmox node that will host the MASTER LXC (e.g. pve1)"
 }
 
@@ -65,7 +65,7 @@ variable "GATEWAY" {
 }
 
 variable "MASTER_IP" {
-  type        = string
+  type        = list(string)
   description = "IP address of the first LXC container"
 }
 
@@ -133,4 +133,14 @@ variable "CORES" {
 variable "BACKUP_COUNT" {
   type        = number
   description = "Number of BACKUP LXC containers"
+}
+
+variable "MASTER_TAGS" {
+  type        = string
+  description = "Tags for the master node"
+}
+
+variable "BACKUP_TAGS" {
+  type        = string
+  description = "Tags for the backup nodes"
 }

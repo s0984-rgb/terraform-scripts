@@ -10,6 +10,7 @@ alias vi='vim'
 alias k='kubectl'
 alias k8s='kubectl config set-context --current --namespace '
 alias t='terraform'
+alias n='nomad'
 
 # Retrieve git branch name from current directory
 parse_git_branch() {
@@ -23,4 +24,11 @@ export PS1="[\[\033[36m\]\u\[\033[00m\]@\[\033[33m\]\h\[\033[00m\]:\[\033[31m\]\
 direnv allow /terraform/proxmox-ha/ >/dev/null 2>&1
 direnv allow /terraform/nomad/ >/dev/null 2>&1
 
+# Hook direnv into shell
 source <(direnv hook bash)
+
+# Add Nomad autocompletion
+complete -C /bin/nomad nomad
+
+# Add bash completion
+source /etc/bash_completion

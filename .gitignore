@@ -5,3 +5,4 @@
 .ssh
 .vagrant
 *.ini
+certs

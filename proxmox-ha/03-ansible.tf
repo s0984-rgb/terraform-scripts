@@ -1,7 +1,7 @@
 resource "null_resource" "ssh-add" {
   depends_on = [
-    proxmox_lxc.haproxy_master,
-    proxmox_lxc.haproxy_backup,
+    module.haproxy_master,
+    module.haproxy_backup,
     local_file.ansible_inventory
   ]
 
@@ -19,8 +19,8 @@ resource "null_resource" "ssh-add" {
 
 resource "null_resource" "keepalived-playbook" {
   depends_on = [
-    proxmox_lxc.haproxy_master,
-    proxmox_lxc.haproxy_backup,
+    module.haproxy_master,
+    module.haproxy_backup,
     local_file.ansible_inventory,
     null_resource.ssh-add
   ]

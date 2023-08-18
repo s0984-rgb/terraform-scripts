@@ -7,7 +7,9 @@ ${host}.${local_domain}
 %{ endfor ~}
 
 [keepalived_primary]
-${keepalived_primary_host} ansible_user=root
+%{ for host in keepalived_primary_host ~}
+${host} ansible_user=root
+%{ endfor ~}
 
 [keepalived_backup]
 %{ for host in keepalived_backup_hosts ~}
