@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['vault'] }}"
+- hosts: vault
+  become: yes
+  roles:
+    - gpg
+    - firewalld
+    - vault
+  vars:
+    ports:
+      - 8200/tcp
+      - 8201/tcp

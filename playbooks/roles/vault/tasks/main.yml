@@ -1,0 +1,44 @@
+---
+- name: Install Vault
+  package:
+    name: vault={{ vault_version }}
+    state: present
+    update_cache: yes
+    force: true
+- name: Ensure necessary folders exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: vault
+    group: vault
+    mode: 0755
+  with_items:
+    - "{{ vault_certs_dir }}"
+    - "{{ vault_log_dir }}"
+    - "{{ vault_data_dir }}"
+- name: copy vault certs
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: files/vault-ca.pem
+      dest: "{{ vault_certs_dir }}/vault-ca.pem"
+    - src: files/vault-server.pem
+      dest: "{{ vault_certs_dir }}/vault.pem"
+    - src: files/vault-server-key.pem
+      dest: "{{ vault_certs_dir }}/vault-key.pem"
+  notify: restart vault
+- name: copy vault config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: templates/vault.hcl.j2
+      dest: "{{ vault_dir }}/vault.hcl"
+  notify: restart vault

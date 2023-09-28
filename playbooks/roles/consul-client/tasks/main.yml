@@ -1,0 +1,17 @@
+---
+- name: Copy Consul config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: consul
+    group: consul
+    mode: 0644
+  with_items:
+    - src: templates/client.hcl.j2
+      dest: "{{ consul_dir }}/client.hcl"
+  notify: restart consul
+# - name: Make sure consul is running
+#   service:
+#     name: consul
+#     state: started
+#     enabled: yes

@@ -11,6 +11,8 @@ alias k='kubectl'
 alias k8s='kubectl config set-context --current --namespace '
 alias t='terraform'
 alias n='nomad'
+alias c='consul'
+alias v='vault'
 
 # Retrieve git branch name from current directory
 parse_git_branch() {
@@ -22,13 +24,20 @@ export PS1="[\[\033[36m\]\u\[\033[00m\]@\[\033[33m\]\h\[\033[00m\]:\[\033[31m\]\
 
 # direnv allowed folders
 direnv allow /terraform/proxmox-ha/ >/dev/null 2>&1
-direnv allow /terraform/nomad/ >/dev/null 2>&1
+direnv allow /terraform/hashistack/ >/dev/null 2>&1
+direnv allow /terraform/vault/ >/dev/null 2>&1
 
 # Hook direnv into shell
 source <(direnv hook bash)
 
 # Add Nomad autocompletion
-complete -C /bin/nomad nomad
+complete -C /bin/nomad nomad n
+
+# Add Consul autocompletion
+complete -C /bin/consul consul c
+
+# Add Vault autocompletion
+complete -C /bin/vault vault v
 
 # Add bash completion
 source /etc/bash_completion

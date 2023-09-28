@@ -1,0 +1,7 @@
+# [localhost]
+localhost ansible_connection=local
+
+[${group1_name}]
+%{ for host in group1_hostnames ~}
+${host}.${local_domain} ansible_user=${ansible_user}
+%{ endfor ~}

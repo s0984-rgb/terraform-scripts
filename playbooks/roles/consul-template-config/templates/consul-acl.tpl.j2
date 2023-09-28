@@ -1,0 +1,7 @@
+{{ '{{' }} with secret "consul/creds/consul-{{ consul_template_type }}-role" {{ '}}' }}
+acl {
+    tokens {
+        agent = "{{ '{{' }} .Data.token {{ '}}' }}"
+    }
+}
+{{ '{{' }} end {{ '}}' }}

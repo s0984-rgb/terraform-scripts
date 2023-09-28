@@ -5,6 +5,7 @@
 	"workspaceFolder": "/terraform/",
 	"extensions": [
 		"hashicorp.terraform",
-		"hashicorp.hcl"
+		"hashicorp.hcl",
+		"ms-vscode.makefile-tools"
 	]
 }

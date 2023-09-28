@@ -1,0 +1,54 @@
+template {
+  source      = "{{ consul_template_template_dir }}/consul.pem.tpl"
+  destination = "{{ consul_certs_dir }}/consul.pem"
+  perms = 0644
+  user = "consul"
+  group = "consul"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash {{ consul_template_rendered_dir }}/consul-reload.sh"
+}
+
+template {
+  source      = "{{ consul_template_template_dir }}/consul-key.pem.tpl"
+  destination = "{{ consul_certs_dir }}/consul-key.pem"
+  perms = 0400
+  user = "consul"
+  group = "consul"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash {{ consul_template_rendered_dir }}/consul-reload.sh"
+}
+
+template {
+  source      = "{{ consul_template_template_dir }}/consul-ca.pem.tpl"
+  destination = "{{ consul_certs_dir }}/consul-ca.pem"
+  perms = 0644
+  user = "consul"
+  group = "consul"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash {{ consul_template_rendered_dir }}/consul-reload.sh"
+}
+
+template {
+  source      = "{{ consul_template_template_dir }}/consul-encryption-key.tpl"
+  destination = "{{ consul_template_rendered_dir }}/consul.key"
+  perms = 0600
+  user = "consul"
+  group = "consul"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash {{ consul_template_rendered_dir }}/consul-encryption-script.sh"
+}
+
+template {
+  source      = "{{ consul_template_template_dir }}/consul-acl.tpl"
+  destination = "{{ consul_dir }}/consul-acl.hcl"
+  perms = 0644
+  user = "consul"
+  group = "consul"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash {{ consul_template_rendered_dir }}/consul-reload.sh"
+}

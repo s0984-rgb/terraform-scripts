@@ -1,0 +1,23 @@
+---
+- name: install Hashicorp repo (Debian)
+  when: ansible_pkg_mgr == "apt"
+  block:
+    - name: hashicorp | no apt key
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /usr/share/keyrings/hashicorp-archive-keyring.asc
+        mode: 0644
+        force: true
+    - name: hashicorp | apt source
+      ansible.builtin.apt_repository:
+        filename: hashicorp
+        repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+- name: install Hashicorp repo (RHEL)
+  ansible.builtin.yum_repository:
+    name: hashicorp
+    description: RPM repository for Hashicorp products
+    baseurl: https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable
+    gpgkey: https://rpm.releases.hashicorp.com/gpg
+    enabled: true
+  when: ansible_pkg_mgr == "dnf"

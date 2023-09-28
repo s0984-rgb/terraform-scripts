@@ -1,0 +1,86 @@
+---
+- name: Install Nomad
+  package:
+    name: nomad={{ nomad_version }}
+    state: present
+    update_cache: yes
+    force: true
+- name: Ensure necessary directories exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: nomad
+    group: nomad
+    mode: 0755
+  with_items:
+    - "{{ nomad_certs_dir }}"
+    - "{{ cni_dir }}"
+- name: Nomad CA certificate
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: nomad
+    group: nomad
+    mode: 0644
+  with_items:
+    - src: files/nomad-ca.pem
+      dest: "{{ nomad_certs_dir }}/nomad-ca.pem"
+    - src: files/consul-client.pem
+      dest: "{{ nomad_certs_dir }}/consul.pem"
+    - src: files/consul-client-key.pem
+      dest: "{{ nomad_certs_dir }}/consul-key.pem"
+- name: Copy consul-template configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: nomad
+    group: nomad
+    mode: 0644
+  with_items:
+    - src: templates/consul.hcl.tpl.j2
+      dest: "{{ consul_template_template_dir }}/consul.hcl.tpl"
+    - src: templates/nomad-consul-template.hcl.j2
+      dest: "{{ consul_template_config_dir }}/nomad-consul-template.hcl"
+  notify: restart consul-template
+- name: Copy common Nomad config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: nomad
+    group: nomad
+    mode: 0644
+  with_items:
+    - src: templates/common.hcl.j2
+      dest: "{{ nomad_dir }}/common.hcl"
+  notify: restart nomad
+- name: Ensure br_netfilter is enabled.
+  modprobe:
+    name: br_netfilter
+    state: present
+- name: CNI Plugin Sysctl config
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: files/bridge.conf
+      dest: /etc/sysctl.d/bridge.conf
+  notify: reload sysctl
+- name: Download CNI Plugins
+  get_url:
+    dest: "/tmp/{{ cni_plugin_package }}.tar.gz"
+    url: "https://github.com/containernetworking/plugins/releases/download/{{ cni_plugin_version }}/{{ cni_plugin_package }}.tgz"
+    owner: root
+    group: root
+    mode: 0644
+- name: Install CNI Plugins
+  unarchive:
+    remote_src: true
+    src: "/tmp/{{ cni_plugin_package }}.tar.gz"
+    dest: "{{ cni_dir }}"
+    owner: nomad
+    group: nomad
+    mode: 0755
+

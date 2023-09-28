@@ -1,0 +1,40 @@
+data_dir  = "{{ nomad_data_dir }}"
+
+bind_addr = "{{ ansible_default_ipv4.address }}" # the default
+
+# Logging Configurations
+log_level = "INFO"
+log_file  = "/var/log/nomad.log"
+
+tls {
+  http = true
+  rpc  = true
+  verify_https_client = true
+
+  ca_file   = "{{ nomad_certs_dir }}/nomad-ca.pem"
+  cert_file = "{{ nomad_certs_dir }}/nomad.pem"
+  key_file  = "{{ nomad_certs_dir }}/nomad-key.pem"
+}
+
+advertise {
+  # Defaults to the first private IP address.
+  http = "{{ ansible_default_ipv4.address }}"
+  rpc  = "{{ ansible_default_ipv4.address }}"
+  serf = "{{ ansible_default_ipv4.address }}"
+}
+
+ports {
+  http = 4646
+  rpc  = 4647
+  serf = 4648
+}
+
+telemetry {
+  prometheus_metrics = true
+  publish_allocation_metrics = true
+  publish_node_metrics = true
+}
+
+acl {
+  enabled = true
+}

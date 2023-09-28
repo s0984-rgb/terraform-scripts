@@ -1,0 +1,24 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['consul'] }}"
+- hosts: consul
+  become: yes
+  roles:
+    - gpg
+    - firewalld
+    - consul-server
+    - consul-template-config
+  vars:
+    ports:
+      - 8300/tcp
+      - 8301/tcp
+      - 8500/tcp
+      - 8501/tcp
+      - 8502/tcp
+    consul_template_user: consul

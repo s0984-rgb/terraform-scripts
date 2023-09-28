@@ -1,0 +1,7 @@
+---
+consul_dir: /etc/consul.d
+consul_certs_dir: "{{ consul_dir }}/certs"
+consul_data_dir: "/var/lib/consul"
+log_dir: "/var/log/consul"
+
+consul_version: 1.16.1-1

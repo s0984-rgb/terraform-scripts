@@ -1,0 +1,7 @@
+---
+# defaults file for vault
+vault_dir: /etc/vault.d
+vault_certs_dir: "{{ vault_dir }}/certs"
+vault_data_dir: /var/lib/vault
+vault_log_dir: /var/log/vault
+vault_version: 1.14.1-1

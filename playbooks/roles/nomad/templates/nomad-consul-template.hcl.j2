@@ -1,0 +1,10 @@
+template {
+  source      = "{{ consul_template_template_dir }}/consul.hcl.tpl"
+  destination = "{{ nomad_dir }}/consul.hcl"
+  perms = 0644
+  user = "nomad"
+  group = "nomad"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash -c 'pkill -SIGHUP nomad'"
+}

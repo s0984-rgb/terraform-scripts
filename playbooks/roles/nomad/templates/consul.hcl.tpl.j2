@@ -1,0 +1,14 @@
+{{ '{{' }} with secret "consul/creds/nomad-{{ nomad_template_type }}-role" {{ '}}' }}
+consul {
+  address = "127.0.0.1:8501"
+  grpc_address = "127.0.0.1:8502"
+  auto_advertise = true
+  ssl = true
+  share_ssl = true
+  token = "{{ '{{' }} .Data.token {{ '}}' }}"
+  grpc_ca_file = "{{ consul_certs_dir }}/consul-ca.pem"
+  ca_file = "{{ consul_certs_dir }}/consul-ca.pem"
+  cert_file = "{{ nomad_certs_dir }}/consul.pem"
+  key_file = "{{ nomad_certs_dir }}/consul-key.pem"
+}
+{{ '{{' }} end {{ '}}' }}

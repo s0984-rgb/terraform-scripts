@@ -13,8 +13,14 @@ COPY --from=quay.io/terraform-docs/terraform-docs:latest /usr/local/bin/terrafor
 # Nomad
 COPY --from=hashicorp/nomad:1.6.1 /bin/nomad /bin/nomad
 
+# Consul
+COPY --from=hashicorp/consul:1.16.1 /bin/consul /bin/consul
+
+# Vault
+COPY --from=hashicorp/vault:1.14.1 /bin/vault /bin/vault
+
 # Add base packages
-RUN apt update -y && apt install -y bash curl openssl openssh-client git perl direnv util-linux gnupg netcat bash-completion jq
+RUN apt update -y && apt install -y bash curl openssl openssh-client git perl direnv util-linux gnupg netcat bash-completion jq bsdmainutils
 RUN apt clean autoremove
 
 # Create custom user

@@ -1,0 +1,35 @@
+---
+- name: Install Consul
+  package:
+    name: consul={{ consul_version }}
+    state: present
+    update_cache: yes
+    force: true
+- name: Install Consul
+  package:
+    name: jq
+    state: present
+    update_cache: yes
+    force: true
+- name: Ensure certificates folder exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: consul
+    group: consul
+    mode: 0755
+  with_items:
+    - "{{ consul_certs_dir }}"
+    - "{{ log_dir }}"
+    - "{{ consul_data_dir }}"
+- name: copy consul config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: consul
+    group: consul
+    mode: 0644
+  with_items:
+    - src: templates/consul.hcl.j2
+      dest: "{{ consul_dir }}/consul.hcl"
+  notify: restart consul

@@ -1,0 +1,23 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['nomad-client'] }}"
+- hosts: nomad-client
+  become: yes
+  roles:
+    - gpg
+    - firewalld
+    - docker
+    - consul-client
+    - nomad-client
+  vars:
+    ports:
+      - 4646/tcp
+      - 4647/tcp
+      - 4648/tcp
+    consul_template_user: root

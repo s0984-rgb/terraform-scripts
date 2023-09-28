@@ -1,7 +1,7 @@
 ---
 # tasks file for retry
 - name: test connection to inventory
-  command: bash -c "/usr/bin/nc -z -w 10 {{ item }} 22"
+  command: "nc -z -w 10 {{ item }} 22"
   loop: "{{ server_group }}"
   register: connection_result
   until: connection_result is not failed

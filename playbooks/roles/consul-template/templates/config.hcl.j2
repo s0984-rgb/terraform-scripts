@@ -1,0 +1,19 @@
+reload_signal = "SIGHUP"
+kill_signal = "SIGINT"
+max_stale = "10m"
+log_level = "warn"
+pid_file = "{{ consul_template_dir }}/consul-template.pid"
+
+wait {
+  min = "5s"
+  max = "10s"
+}
+
+vault {
+  address = "https://vault0.homelab.local:8200"
+  token = "{{ vault_token }}"
+  renew_token = false
+  ssl {
+    ca_cert = "{{ consul_template_certs_dir }}/vault-ca.pem"
+  }
+}

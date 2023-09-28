@@ -1,0 +1,9 @@
+server {
+  enabled          = true
+  encrypt          = "{{ nomad_server_gossip_key }}"
+  bootstrap_expect = 3
+}
+
+client {
+  enabled = false
+}

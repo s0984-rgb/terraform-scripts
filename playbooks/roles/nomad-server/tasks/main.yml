@@ -1,0 +1,30 @@
+---
+- name: Nomad CA certificate
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: nomad
+    group: nomad
+    mode: 0644
+  with_items:
+    - src: files/nomad-server-key.pem
+      dest: "{{ nomad_certs_dir }}/nomad-key.pem"
+    - src: files/nomad-server.pem
+      dest: "{{ nomad_certs_dir }}/nomad.pem"
+  notify: restart nomad
+- name: copy nomad config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: nomad
+    group: nomad
+    mode: 0644
+  with_items:
+    - src: templates/server.hcl.j2
+      dest: "{{ nomad_dir }}/server.hcl"
+  notify: restart nomad
+- name: Make sure nomad is running
+  service:
+    name: nomad
+    state: started
+    enabled: yes

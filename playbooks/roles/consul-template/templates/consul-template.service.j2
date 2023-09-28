@@ -1,0 +1,19 @@
+[Unit]
+Description="Consul Template"
+Documentation=https://github.com/hashicorp/consul-template
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty={{ consul_template_config_dir }}/config.hcl
+
+[Service]
+User={{ consul_template_user }}
+Group={{ consul_template_user }}
+ExecStart=/usr/bin/consul-template -config={{ consul_template_config_dir }}
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

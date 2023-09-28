@@ -1,0 +1,3 @@
+---
+# defaults file for consul-client
+consul_template_type: client
