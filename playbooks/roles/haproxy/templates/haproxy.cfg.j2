@@ -16,7 +16,6 @@ global
     ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
 
 defaults
-    log     global
     mode    http
     timeout connect 5000
     timeout client  50000
@@ -24,11 +23,16 @@ defaults
 
 frontend myweb
     bind {{ virtual_ip }}:443
-    option tcplog
     mode tcp
-    default_backend web-servers
+    option tcplog
+    option http-server-close
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req_ssl_hello_type 1 }
+    use_backend proxmox-backend if { req.ssl_sni -i pve.homelab.local }
+    use_backend nomad-backend if { req.ssl_sni -i nomad.homelab.local }
+    use_backend vault-backend if { req.ssl_sni -i vault.homelab.local }
 
-backend web-servers
+backend proxmox-backend
     mode tcp
     balance roundrobin
     option tcp-check
@@ -41,3 +45,39 @@ backend web-servers
     server {{ host }} {{ host }}:{{ proxmox_port }} check backup
 {% endif %}
 {%- endfor %}
+
+backend nomad-backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server nomad-server0.homelab.local nomad-server0.homelab.local:4646 check
+    server nomad-server1.homelab.local nomad-server1.homelab.local:4646 check
+    server nomad-server2.homelab.local nomad-server2.homelab.local:4646 check
+
+backend vault-backend
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server vault0.homelab.local vault0.homelab.local:8200 check
+    server vault1.homelab.local vault1.homelab.local:8200 check
+    server vault2.homelab.local vault2.homelab.local:8200 check
+    
+## Listeners
+
+listen nomad-http
+    bind {{ virtual_ip }}:4646
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server nomad-server0.homelab.local nomad-server0.homelab.local:4646 check
+    server nomad-server1.homelab.local nomad-server1.homelab.local:4646 check
+    server nomad-server2.homelab.local nomad-server2.homelab.local:4646 check
+
+listen nomad-rpc
+    bind {{ virtual_ip }}:4647
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server nomad-server0.homelab.local nomad-server0.homelab.local:4647 check
+    server nomad-server1.homelab.local nomad-server1.homelab.local:4647 check
+    server nomad-server2.homelab.local nomad-server2.homelab.local:4647 check

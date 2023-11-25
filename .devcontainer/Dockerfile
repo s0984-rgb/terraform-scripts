@@ -1,5 +1,5 @@
 FROM python:bullseye
-ARG USER
+ARG DC_USER
 
 # Install ansible
 RUN python3 -m pip install --upgrade pip ansible
@@ -20,23 +20,24 @@ COPY --from=hashicorp/consul:1.16.1 /bin/consul /bin/consul
 COPY --from=hashicorp/vault:1.14.1 /bin/vault /bin/vault
 
 # Add base packages
-RUN apt update -y && apt install -y bash curl openssl openssh-client git perl direnv util-linux gnupg netcat bash-completion jq bsdmainutils
+RUN apt update -y && apt install -y bash curl openssl openssh-client git perl direnv util-linux gnupg netcat bash-completion jq bsdmainutils gettext-base
 RUN apt clean autoremove
 
 # Create custom user
-RUN useradd -s /bin/bash -u 1000 -m ${USER}
-COPY --chown=${USER}:${USER} ./.bashrc /home/${USER}/
-COPY --chown=${USER}:${USER} ./.profile /home/${USER}/
+RUN useradd -s /bin/bash -u 1000 -m ${DC_USER}
+RUN rm -f /home/${DC_USER}/.bashrc && ln -s /terraform/.devcontainer/.bashrc /home/${DC_USER}/.bashrc
+RUN rm -f /home/${DC_USER}/.profile && ln -s /terraform/.devcontainer/.profile /home/${DC_USER}/.profile
 
-# Create VSCode folder
-RUN mkdir -p /home/${USER}/.vscode-server/extensions \
-  /home/${USER}/.vscode-server-insiders/extensions
-RUN chown -R ${USER} \
-  /home/${USER}/.vscode-server \
-  /home/${USER}/.vscode-server-insiders
+# Create volume folders
+RUN mkdir -p /home/${DC_USER}/.vscode-server/extensions \
+  /home/${DC_USER}/.vscode-server-insiders/extensions \
+  /home/${DC_USER}/.bash_history
+# Set ownership for container user
+RUN chown -R ${DC_USER}:${DC_USER} \
+  /home/${DC_USER}
 
-USER ${USER}
+USER ${DC_USER}
 
 # Install and configure fzf
-RUN git clone --depth 1 https://github.com/junegunn/fzf.git /home/${USER}/.fzf \
-  && /home/${USER}/.fzf/install --all
+RUN git clone --depth 1 https://github.com/junegunn/fzf.git /home/${DC_USER}/.fzf \
+  && /home/${DC_USER}/.fzf/install --all --no-update-rc

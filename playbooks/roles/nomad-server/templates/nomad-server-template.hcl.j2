@@ -1,0 +1,10 @@
+template {
+  source      = "{{ vault_agent_templates_dir }}/server.hcl.tpl"
+  destination = "{{ nomad_dir }}/server.hcl"
+  perms = 0644
+  user = "nomad"
+  group = "nomad"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash -c 'pkill -SIGHUP nomad'"
+}

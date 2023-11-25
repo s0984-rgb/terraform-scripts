@@ -1,18 +1,5 @@
 ---
 # tasks file for nomad-client
-- name: Nomad CA certificate
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: nomad
-    group: nomad
-    mode: 0644
-  with_items:
-    - src: files/nomad-client-key.pem
-      dest: "{{ nomad_certs_dir }}/nomad-key.pem"
-    - src: files/nomad-client.pem
-      dest: "{{ nomad_certs_dir }}/nomad.pem"
-  notify: restart nomad
 - name: Copy Nomad config
   template:
     src: "{{ item.src }}"

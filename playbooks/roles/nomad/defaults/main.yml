@@ -7,6 +7,4 @@ cni_plugin_arch: "amd64"
 cni_plugin_version: "v1.3.0"
 cni_plugin_package: "cni-plugins-linux-{{ cni_plugin_arch }}-{{ cni_plugin_version }}"
 
-nomad_consul_acl_token: "21c1df8a-6611-1449-30d9-e042a267c23e"
-
 nomad_version: 1.6.1-1

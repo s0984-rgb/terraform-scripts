@@ -1,0 +1,3 @@
+{{ with secret "pki_consul/cert/ca_chain" }}
+{{ .Data.certificate }}
+{{ end }}

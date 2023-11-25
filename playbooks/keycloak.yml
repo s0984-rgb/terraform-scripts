@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['docker'] }}"
+- hosts: docker
+  become: yes
+  roles:
+    - gpg
+    - firewalld
+    - docker
+    - keycloak-compose
+  vars:
+    ports:
+      - 8080/tcp
+      - 8432/tcp

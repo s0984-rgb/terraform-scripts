@@ -6,9 +6,9 @@ consul {
   ssl = true
   share_ssl = true
   token = "{{ '{{' }} .Data.token {{ '}}' }}"
-  grpc_ca_file = "{{ consul_certs_dir }}/consul-ca.pem"
-  ca_file = "{{ consul_certs_dir }}/consul-ca.pem"
-  cert_file = "{{ nomad_certs_dir }}/consul.pem"
-  key_file = "{{ nomad_certs_dir }}/consul-key.pem"
+  grpc_ca_file = "{{ consul_ca }}"
+  ca_file = "{{ consul_ca }}"
+  cert_file = "/etc/consul.d/certs/consul.pem"
+  key_file = "/etc/consul.d/certs/consul.pem"
 }
 {{ '{{' }} end {{ '}}' }}

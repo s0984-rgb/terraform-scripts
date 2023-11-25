@@ -6,6 +6,31 @@
 	"extensions": [
 		"hashicorp.terraform",
 		"hashicorp.hcl",
-		"ms-vscode.makefile-tools"
-	]
+		"ms-vscode.makefile-tools",
+		"ms-azuretools.vscode-docker",
+		"redhat.vscode-yaml",
+		"donjayamanne.githistory",
+		"emeraldwalk.RunOnSave",
+		"mikestead.dotenv",
+		"yzhang.markdown-all-in-one",
+		"eamodio.gitlens",
+		"DavidAnson.vscode-markdownlint"
+	],
+	"settings": {
+		"emeraldwalk.runonsave": {
+			"commands": [
+				{
+					"match": "\\.tf$",
+					"cmd": "terraform fmt ${fileDirname}"
+				}
+			]
+		},
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 5000,
+		"files.associations": {
+			"*.env.dist": "dotenv",
+			"*.env": "dotenv",
+			".envrc": "dotenv"
+		}
+	}
 }

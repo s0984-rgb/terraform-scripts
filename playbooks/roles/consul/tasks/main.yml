@@ -5,7 +5,7 @@
     state: present
     update_cache: yes
     force: true
-- name: Install Consul
+- name: Install jq
   package:
     name: jq
     state: present
@@ -17,7 +17,7 @@
     state: directory
     owner: consul
     group: consul
-    mode: 0755
+    mode: 0775
   with_items:
     - "{{ consul_certs_dir }}"
     - "{{ log_dir }}"
@@ -33,3 +33,28 @@
     - src: templates/consul.hcl.j2
       dest: "{{ consul_dir }}/consul.hcl"
   notify: restart consul
+- name: Copy templates to Vault Agent directory
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: templates/consul-templates.hcl.j2
+      dest: "{{ vault_dir }}/consul-templates.hcl"
+    - src: templates/consul-ca.pem.tpl.j2
+      dest: "{{ vault_agent_templates_dir }}/consul-ca.pem.tpl"
+    - src: templates/consul.pem.tpl.j2
+      dest: "{{ vault_agent_templates_dir }}/consul.pem.tpl"
+    - src: templates/consul-encryption-key.tpl.j2
+      dest: "{{ vault_agent_templates_dir }}/consul-encryption-key.tpl"
+    - src: templates/consul-encryption-script.sh.j2
+      dest: "{{ vault_agent_rendered_dir }}/consul-encryption-script.sh"
+    - src: templates/logger.sh
+      dest: "{{ vault_agent_rendered_dir }}/logger.sh"
+    - src: templates/consul-reload.sh.j2
+      dest: "{{ vault_agent_rendered_dir }}/consul-reload.sh"
+    - src: templates/consul-acl.tpl.j2
+      dest: "{{ vault_agent_templates_dir }}/consul-acl.tpl"
+

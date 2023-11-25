@@ -1,0 +1,40 @@
+---
+# tasks file for vault-agent
+- name: Ensure folders exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: vault
+    group: vault
+    mode: 0755
+  with_items:
+    - "{{ vault_agent_templates_dir }}"
+    - "{{ vault_agent_rendered_dir }}"
+- name: Create systemd service for vault-agent
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: templates/vault-agent.service.j2
+      dest: "{{ vault_agent_service_file }}"
+  notify: reload systemctl
+- name: Copy vault-agent configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: templates/vault.hcl.j2
+      dest: "{{ vault_dir }}/vault.hcl"
+    - src: templates/vault-appid.j2
+      dest: "{{ vault_dir }}/roleid"
+    - src: templates/vault-appsecret.j2
+      dest: "{{ vault_dir }}/secretid"
+  notify: restart vault-agent
+- name: Flush handlers
+  meta: flush_handlers

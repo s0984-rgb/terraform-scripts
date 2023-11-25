@@ -1,10 +1,32 @@
 template {
-  source      = "{{ consul_template_template_dir }}/consul.hcl.tpl"
+  source      = "{{ vault_agent_templates_dir }}/consul.hcl.tpl"
   destination = "{{ nomad_dir }}/consul.hcl"
   perms = 0644
   user = "nomad"
   group = "nomad"
   left_delimiter  = "{{ '{{' }}"
   right_delimiter = "{{ '}}' }}"
-  command     = "bash -c 'pkill -SIGHUP nomad'"
+  command     = "bash -c 'CONSUL_PID=`pidof -q 'nomad'`; if [ ! -z $CONSUL_PID ]; then pkill -SIGHUP nomad;fi'"
+}
+
+template {
+  source      = "{{ vault_agent_templates_dir }}/nomad.pem.tpl"
+  destination = "{{ nomad_certs_dir }}/nomad.pem"
+  perms = 0644
+  user = "nomad"
+  group = "nomad"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash -c 'CONSUL_PID=`pidof -q 'nomad'`; if [ ! -z $CONSUL_PID ]; then pkill -SIGHUP nomad;fi'"
+}
+
+template {
+  source      = "{{ vault_agent_templates_dir }}/nomad-ca.pem.tpl"
+  destination = "{{ nomad_certs_dir }}/nomad-ca.pem"
+  perms = 0644
+  user = "nomad"
+  group = "nomad"
+  left_delimiter  = "{{ '{{' }}"
+  right_delimiter = "{{ '}}' }}"
+  command     = "bash -c 'CONSUL_PID=`pidof -q 'nomad'`; if [ ! -z $CONSUL_PID ]; then pkill -SIGHUP nomad;fi'"
 }

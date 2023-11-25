@@ -1,0 +1,27 @@
+---
+# tasks file for vault-server
+- name: copy vault certs
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: files/vault-server.pem
+      dest: "{{ vault_certs_dir }}/vault.pem"
+    - src: files/vault-server-key.pem
+      dest: "{{ vault_certs_dir }}/vault-key.pem"
+- name: copy vault config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: vault
+    group: vault
+    mode: 0644
+  with_items:
+    - src: templates/vault.hcl.j2
+      dest: "{{ vault_dir }}/vault.hcl"
+  notify: restart vault
+- name: Flush handlers
+  meta: flush_handlers

@@ -1,8 +1,0 @@
----
-- name: reload systemctl
-  systemd_service:
-    daemon_reload: true
-- name: restart consul-template
-  service:
-    name: consul-template
-    state: restarted

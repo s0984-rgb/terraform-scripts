@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        USER: dev
+        DC_USER: dev
 
     volumes:
       # Forwards the local Docker socket to the container.
@@ -17,6 +17,8 @@ services:
       - ~/.ssh:/home/dev/.ssh
       - terraform_vscode_extension:/home/dev/.vscode-server/extensions
       - terraform_vscode_insider_extension:/home/dev/.vscode-server-insiders/extensions
+      # Persist bash history
+      - terraform_bash_history:/home/dev/.bash_history
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity 
@@ -34,3 +36,4 @@ services:
 volumes:
   terraform_vscode_extension:
   terraform_vscode_insider_extension:
+  terraform_bash_history:

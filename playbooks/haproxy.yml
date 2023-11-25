@@ -8,6 +8,6 @@
   vars:
     server_group: "{{ groups['haproxy'] }}"
 - hosts: haproxy
-  become: yes
+  become: true
   roles:
     - haproxy

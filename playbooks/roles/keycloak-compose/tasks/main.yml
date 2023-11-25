@@ -1,0 +1,43 @@
+---
+# tasks file for keycloak-compose
+- name: install python3
+  package:
+    name: python3
+    state: present
+    update_cache: yes
+  when: ansible_pkg_mgr == "apt"
+- name: install pip
+  package:
+    name: pip
+    state: present
+    update_cache: yes
+  when: ansible_pkg_mgr == "apt"
+- name: Ensure folders exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ keycloak_dir }}"
+- name: Copy docker compose files to host
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  with_items:
+    - src: files/docker-compose.yml
+      dest: "{{ keycloak_dir }}"
+    - src: files/Dockerfile
+      dest: "{{ keycloak_dir }}"
+- name: Install Python Docker module
+  ansible.builtin.pip:
+    name: "docker"
+    version: ">=5.0.0"
+- name: Install Python Docker module
+  ansible.builtin.pip:
+    name: "docker-compose"
+- name: Start Keycloak containers
+  community.docker.docker_compose:
+    project_src: "{{ keycloak_dir }}"
+    nocache: true
+    build: true

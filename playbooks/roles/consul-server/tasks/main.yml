@@ -10,6 +10,8 @@
     - src: templates/server.hcl.j2
       dest: "{{ consul_dir }}/server.hcl"
   notify: restart consul
+- name: Flush handlers
+  meta: flush_handlers
 # - name: Make sure consul is running
 #   service:
 #     name: consul

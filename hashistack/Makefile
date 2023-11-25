@@ -1,84 +1,32 @@
-SHELL:=/bin/bash
-VAULT_CERT_DIR:=../vault_certs
-NOMAD_CERT_DIR:=../nomad_certs
-CONSUL_CERT_DIR:=../consul_certs
-TOKENS_DIR:=tokens
-NOMAD_TOKEN_DIR:=${TOKENS_DIR}/nomad
-CONSUL_TOKEN_DIR:=${TOKENS_DIR}/consul
-VAULT_TOKEN_DIR:=${TOKENS_DIR}/vault
-
-_check_domain:
-ifndef DOMAIN
-DOMAIN:=homelab.local
-endif
-
-help: ## Show this help
-	@echo "----------------------------------------------------------------------"
-	@echo "Descriptions of Make commands and what they do."
-	@echo "Usage: $(MAKE) <cmd1> <cmd2> <cmdN>"
-	@echo "e.g.: $(MAKE) help"
-	@echo "----------------------------------------------------------------------"
-	@sed -ne 's/^\([^[:space:]]*\):.*##/\1:\t/p' $(MAKEFILE_LIST) | column -t -s $$'\t'
+include ../Makefile
 
 #@ Nomad
-
 nomad_ca: _check_domain ## Create Nomad CA
-	@cd ${NOMAD_CERT_DIR} \
-		&& nomad tls ca create \
-			-common-name "Nomad CA" \
-			-country "CA" \
-			-days 3650 \
-			-domain ${DOMAIN} \
-			-locality "Montreal" \
-			-name-constraint \
-			-organization "Homelabs" \
-			-organizational-unit "Nomad" \
-			-province "QC"
-
-nomad_server_certs: _check_domain ## Create Nomad server certificate
-	@cd ${NOMAD_CERT_DIR} \
-		&& nomad tls cert create -server \
-			-days 3650 \
-			-domain ${DOMAIN} \
-			-region NCSA \
-			-additional-dnsname nomad-server0.${DOMAIN} \
-			-additional-dnsname nomad-server1.${DOMAIN} \
-			-additional-dnsname nomad-server3.${DOMAIN} \
-			-additional-dnsname nomad.${DOMAIN}
-
-nomad_client_certs: _check_domain ## Create Nomad client certificate
-	@cd ${NOMAD_CERT_DIR} \
-		&& nomad tls cert create -client \
-			-ca ${DOMAIN}-agent-ca.pem \
-			-key ${DOMAIN}-agent-ca-key.pem \
-			-days 3650
-
-nomad_cli_certs: _check_domain ## Create Nomad CLI certificate
-	@cd ${NOMAD_CERT_DIR} \
-		&& nomad tls cert create -cli \
-			-ca ${DOMAIN}-agent-ca.pem \
-			-key ${DOMAIN}-agent-ca-key.pem \
-			-days 3650
-
-nomad_pfx: ## Create PFX file for Nomad certificates (for use in browser)
-	@cd ${NOMAD_CERT_DIR} \
-		&& openssl pkcs12 -export \
-			-keypbe NONE \
-			-certpbe NONE \
-			-nomaciter \
-			-passout pass: \
-			-inkey global-client-nomad-key.pem \
-			-in global-client-nomad.pem \
-			-out client.pfx
+	@cd ${NOMAD_CERT_DIR}
+	@vault secrets enable -path=${NOMAD_PKI} pki
+	@vault secrets tune -max-lease-ttl=43800h ${NOMAD_PKI}
+	@vault write -format=json ${NOMAD_PKI}/intermediate/generate/internal \
+		common_name="dc1.nomad Intermediate Authority" \
+		| jq -r '.data.csr' | tee ${NOMAD_CSR}
+	@vault write -format=json pki/root/sign-intermediate \
+		csr=@${NOMAD_CSR} \
+		format=pem_bundle ttl="43800h" \
+		| jq -r '.data.certificate' | tee ${NOMAD_INT_CERT}
+	@vault write ${NOMAD_PKI}/intermediate/set-signed \
+		certificate=@${NOMAD_INT_CERT}
+	@vault write ${NOMAD_PKI}/roles/nomad-dc1 \
+		allowed_domains="${DOMAIN}","dc1.nomad" \
+		allow_subdomains=true \
+		generate_lease=true \
+		max_ttl="720h"
 
 ##@ ACL
 nomad_acl_bootstrap: ## Bootstrap Nomad ACLs
-	@cd ${NOMAD_TOKEN_DIR} \
-		&& nomad acl bootstrap | tee nomad-bootstrap.token
+	@echo "export NOMAD_TOKEN=$(shell nomad acl bootstrap -json | jq -r '.SecretID')" \
+			> ${ENVIRONMENT_DIR}/nomad-bootstrap-token.env
 
 #@ Consul
 ##@ Certs
-CONSUL_PKI:=pki_consul
 # Enable ${CONSUL_PKI} secrets engine
 # Tune ${CONSUL_PKI} secrets engine
 # Create Consul intermediate CA CSR
@@ -104,62 +52,10 @@ consul_ca: _check_domain ## Create Consul CA infrastructure in Vault
 			generate_lease=true \
 			max_ttl="720h"
 
-consul_server_certs: _check_domain ## Create Consul server certificates
-	@cd ${CONSUL_CERT_DIR} \
-		&& vault write ${CONSUL_PKI}/issue/consul-dc1 \
-			common_name="server.dc1.consul" \
-			ip_sans="192.168.2.22" \
-			alt_names="consul0.${DOMAIN}" \
-			ttl="24h" | tee server-certs.txt
-
-# consul_server_certs: _check_domain ## Create Consul server certificates
-# 	@cd ${CONSUL_CERT_DIR} \
-# 		&& consul tls cert create -server \
-# 			-ca ${DOMAIN}-agent-ca.pem \
-# 			-key ${DOMAIN}-agent-ca-key.pem \
-# 			-additional-ipaddress 192.168.2.22 \
-# 			-additional-dnsname consul0.${DOMAIN} \
-# 			-additional-dnsname server.dc1.consul \
-# 			-days 3650 \
-# 			-domain ${DOMAIN}
-
-consul_client_certs: _check_domain ## Create Consult client certificates in Vault
-	@cd ${CONSUL_CERT_DIR} \
-		&& vault write ${CONSUL_PKI}/issue/consul-dc1 \
-			common_name="client.dc1.consul" \
-			ttl="720h" \
-			-format=json | tee client-certs.json
-
-# consul_client_certs: _check_domain ## Create Consul client certificates
-# 	@cd ${CONSUL_CERT_DIR} \
-# 		&& consul tls cert create -client \
-# 			-ca ${DOMAIN}-agent-ca.pem \
-# 			-key ${DOMAIN}-agent-ca-key.pem \
-# 			-days 3650
-
-consul_cli_certs: _check_domain ## Create Consul CLI certificates
-	@cd ${CONSUL_CERT_DIR} \
-		&& consul tls cert create -cli \
-			-ca ${DOMAIN}-agent-ca.pem \
-			-key ${DOMAIN}-agent-ca-key.pem \
-			-domain ${DOMAIN} \
-			-days 3650
-
-consul_pfx: _check_domain ## Create PFX file for Consul certificates (for use in browser)
-	@cd ${CONSUL_CERT_DIR} \
-		&& openssl pkcs12 -export \
-			-keypbe NONE \
-			-certpbe NONE \
-			-nomaciter \
-			-passout pass: \
-			-inkey dc1-cli-${DOMAIN}-0-key.pem \
-			-in dc1-cli-${DOMAIN}-0.pem \
-			-out client.pfx
-
 ##@ ACL
 consul_acl_bootstrap: ## Bootstrap Consul ACLs
-	@cd ${CONSUL_TOKEN_DIR} \
-		&& consul acl bootstrap | tee consul-bootstrap.token
+	@echo "export CONSUL_HTTP_TOKEN=$(shell consul acl bootstrap -format=json | jq -r '.SecretID')" \
+			> ${ENVIRONMENT_DIR}/consul-bootstrap-token.env
 
 consul_secret_engine: ## Create Consul secret engine in Vault
 	@vault secrets enable -path=consul/ consul
@@ -200,7 +96,7 @@ consul_acl_nomad_server_policy: ## Create Nomad server ACLs in Consul
 			-name "nomad-server" \
 			-description "Nomad Server Policy" \
 			-rules @nomad-server-policy.hcl \
-		&& vault write consul/roles/nomad-server-role \
+		&& vault write consul/roles/nomad-server-role \ 
 			policies=nomad-client,nomad-server
 
 consul_acl_nomad_client_policy: ## Create Nomad client ACLs in Consul
@@ -220,15 +116,77 @@ consul_acl_nomad_client_token: ## Create Nomad token in Consul
 	@cd ${CONSUL_TOKEN_DIR} \
 		&& vault read consul/creds/nomad-client-role | tee nomad-client.token
 
-# consul_acl_nomad_token: ## Create Nomad token in Consul
-# 	@cd ${CONSUL_TOKEN_DIR} \
-# 		&& consul acl token create \
-# 			-description "Nomad Agent Token" \
-# 			-policy-name "nomad-server" \
-# 			-policy-name "nomad-client" | tee nomad-agent.token
+get_vault_agent_approle_id: ## Retrieve consul approle id
+	@cd ${ENVIRONMENT_DIR} \
+		&& echo "export TF_VAR_VAULT_APPROLE_ID=$(shell vault read auth/approle/role/vault-agent/role-id -format=json | jq '.data.role_id')" \
+			> vault_approle_id.env
 
-# consul_acl_consul_client_token: ## Create Consul client ACL token
-# 	@cd ${CONSUL_TOKEN_DIR} \
-# 		&& consul acl token create \
-# 			-node-identity "consul-client:dc1" \
-# 			-description "consul-client token" | tee consul-client.token
+get_vault_agent_approle_secret: ## Retrieve consul approle secret
+	@cd ${ENVIRONMENT_DIR} \
+		&& echo "export TF_VAR_VAULT_APPROLE_SECRET=$(shell vault write -f auth/approle/role/vault-agent/secret-id -format=json | jq '.data.secret_id')" \
+			> vault_approle_secret.env
+
+# vault_agent_token_policy: ## Create token policy for vault agent
+# 	@vault policy write token policies/token.hcl
+
+# vault_agent_consul_policy: ## Create Consul policy for vault agent
+# 	@vault policy write consul policies/consul.hcl
+
+# vault_agent_nomad_policy: ## Create Nomad policy for vault agent
+# 	@vault policy write nomad policies/nomad.hcl
+
+# vault_agent_policies: ## Create all policies for vault agent
+# 	@$(MAKE) vault_agent_token_policies vault_agent_consul_policies vault_agent_nomad_policies
+
+# vault_agent_enable_approle: ## Enable approle authentication method on Vault
+# 	@vault enable auth approle
+
+# vault_agent_approle: ## Create Consul approle role and associate policies
+# 	@vault write auth/approle/role/vault-agent \
+# 		policies="token","consul","nomad"
+
+wipe_consul_environment: ## Stop vault agent, consul, and nomad and delete all config and data directories
+	@ansible consul -i inventory.ini -m command -b -a "systemctl stop vault-agent"
+	@ansible consul -i inventory.ini -m command -b -a "systemctl stop consul"
+	@ansible consul -i inventory.ini -m command -b -a "rm -rf /var/lib/vault"
+	@ansible consul -i inventory.ini -m command -b -a "rm -rf /var/lib/consul"
+	@ansible consul -i inventory.ini -m command -b -a "rm -rf /etc/consul.d"
+	@ansible consul -i inventory.ini -m command -b -a "rm -rf /etc/vault.d"
+
+wipe_nomad_environment: ## Stop vault agent, consul, and nomad and delete all config and data directories
+	@ansible nomad-server -i inventory.ini -m command -b -a "systemctl stop vault-agent"
+	@ansible nomad-server -i inventory.ini -m command -b -a "systemctl stop consul"
+	@ansible nomad-server -i inventory.ini -m command -b -a "systemctl stop nomad"
+	@ansible nomad-server -i inventory.ini -m command -b -a "rm -rf /var/lib/vault"
+	@ansible nomad-server -i inventory.ini -m command -b -a "rm -rf /var/lib/consul"
+	@ansible nomad-server -i inventory.ini -m command -b -a "rm -rf /var/lib/nomad"
+	@ansible nomad-server -i inventory.ini -m command -b -a "rm -rf /etc/nomad.d"
+	@ansible nomad-server -i inventory.ini -m command -b -a "rm -rf /etc/consul.d"
+	@ansible nomad-server -i inventory.ini -m command -b -a "rm -rf /etc/vault.d"
+	@ansible nomad-client -i inventory.ini -m command -b -a "systemctl stop vault-agent"
+	@ansible nomad-client -i inventory.ini -m command -b -a "systemctl stop consul"
+	@ansible nomad-client -i inventory.ini -m command -b -a "systemctl stop nomad"
+	@ansible nomad-client -i inventory.ini -m command -b -a "rm -rf /var/lib/vault"
+	@ansible nomad-client -i inventory.ini -m command -b -a "rm -rf /var/lib/consul"
+	@ansible nomad-client -i inventory.ini -m command -b -a "rm -rf /var/lib/nomad"
+	@ansible nomad-client -i inventory.ini -m command -b -a "rm -rf /etc/nomad.d"
+	@ansible nomad-client -i inventory.ini -m command -b -a "rm -rf /etc/consul.d"
+	@ansible nomad-client -i inventory.ini -m command -b -a "rm -rf /etc/vault.d"
+	
+restart_vault_agent: ## Restart vault-agent service on nomad machines
+	@ansible nomad-server -i inventory.ini -m command -b -a "systemctl restart vault-agent"
+	@ansible nomad-client -i inventory.ini -m command -b -a "systemctl restart vault-agent"
+
+restart_nomad: ## Restart nomad service
+	@ansible nomad-server -i inventory.ini -m command -b -a "systemctl restart nomad"
+	@ansible nomad-client -i inventory.ini -m command -b -a "systemctl restart nomad"
+
+restart_consul_clients: ## Restart consul service on nomad machines
+	@ansible nomad-server -i inventory.ini -m command -b -a "systemctl restart consul"
+	@ansible nomad-client -i inventory.ini -m command -b -a "systemctl restart consul"
+
+restart_consul_vault_agent:
+	@ansible consul -i inventory.ini -m command -b -a "systemctl restart vault-agent"
+
+restart_consul_servers:
+	@ansible consul -i inventory.ini -m command -b -a "systemctl restart consul"

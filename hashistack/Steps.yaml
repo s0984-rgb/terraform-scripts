@@ -1,0 +1,11 @@
+---
+# Steps to take to achieve "Hashistack"
+- name: Install Vault
+  step1: install vault
+  step2: configure vault
+  step3: unseal vault one at a time
+    - each vault must be unsealed.
+  step4: Configure Root CA
+  step5: Configure Consul and Nomad CAs
+  step6:
+  

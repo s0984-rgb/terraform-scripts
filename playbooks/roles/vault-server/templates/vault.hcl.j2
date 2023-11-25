@@ -1,0 +1,28 @@
+cluster_addr  = "https://{{ ansible_default_ipv4.address }}:8201"
+api_addr      = "https://{{ ansible_default_ipv4.address }}:8200"
+disable_mlock = true
+log_level     = "debug"
+log_file      = "/var/log/vault/vault.log"
+
+ui = true
+
+listener "tcp" {
+  address            = "{{ ansible_default_ipv4.address }}:8200"
+  tls_disable        = false
+  tls_cert_file      = "{{ vault_certs_dir }}/vault.pem"
+  tls_key_file       = "{{ vault_certs_dir }}/vault-key.pem"
+  tls_client_ca_file = "{{ vault_certs_dir }}/vault-ca.pem"
+}
+
+storage "raft" {
+  path    = "{{ vault_data_dir }}"
+  node_id = "{{ ansible_facts['nodename'] }}"
+
+  retry_join {
+    leader_tls_servername   = "{{ groups['vault'][0] }}"
+    leader_api_addr         = "https://{{ groups['vault'][0] }}:8200"
+    leader_ca_cert_file     = "{{ vault_certs_dir }}/vault-ca.pem"
+    leader_client_cert_file = "{{ vault_certs_dir }}/vault.pem"
+    leader_client_key_file  = "{{ vault_certs_dir }}/vault-key.pem"
+  }
+}

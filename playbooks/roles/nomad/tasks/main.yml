@@ -15,33 +15,23 @@
   with_items:
     - "{{ nomad_certs_dir }}"
     - "{{ cni_dir }}"
-- name: Nomad CA certificate
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: nomad
-    group: nomad
-    mode: 0644
-  with_items:
-    - src: files/nomad-ca.pem
-      dest: "{{ nomad_certs_dir }}/nomad-ca.pem"
-    - src: files/consul-client.pem
-      dest: "{{ nomad_certs_dir }}/consul.pem"
-    - src: files/consul-client-key.pem
-      dest: "{{ nomad_certs_dir }}/consul-key.pem"
-- name: Copy consul-template configs
+- name: Copy vault-agent configs
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    owner: nomad
-    group: nomad
+    owner: vault
+    group: vault
     mode: 0644
   with_items:
     - src: templates/consul.hcl.tpl.j2
-      dest: "{{ consul_template_template_dir }}/consul.hcl.tpl"
+      dest: "{{ vault_agent_templates_dir }}/consul.hcl.tpl"
+    - src: templates/nomad.pem.tpl.j2
+      dest: "{{ vault_agent_templates_dir }}/nomad.pem.tpl"
+    - src: templates/nomad-ca.pem.tpl.j2
+      dest: "{{ vault_agent_templates_dir }}/nomad-ca.pem.tpl"
     - src: templates/nomad-consul-template.hcl.j2
-      dest: "{{ consul_template_config_dir }}/nomad-consul-template.hcl"
-  notify: restart consul-template
+      dest: "{{ vault_dir }}/nomad-consul-template.hcl"
+  notify: restart vault-agent
 - name: Copy common Nomad config
   template:
     src: "{{ item.src }}"

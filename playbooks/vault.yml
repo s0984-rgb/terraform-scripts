@@ -12,7 +12,7 @@
   roles:
     - gpg
     - firewalld
-    - vault
+    - vault-server
   vars:
     ports:
       - 8200/tcp

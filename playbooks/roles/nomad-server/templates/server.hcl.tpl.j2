@@ -1,0 +1,11 @@
+{{ '{{' }} with secret "kv/data/nomad/config" {{ '}}' }}
+server {
+  enabled          = true
+  encrypt          = "{{ '{{' }} .Data.data.encryption {{ '}}' }}"
+  bootstrap_expect = 3
+}
+
+client {
+  enabled = false
+}
+{{ '{{' }} end {{ '}}' }}

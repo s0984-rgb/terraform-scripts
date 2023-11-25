@@ -1,0 +1,6 @@
+---
+vault_agent_service_file: /usr/lib/systemd/system/vault-agent.service
+vault_agent_templates_dir: "{{ vault_dir }}/templates"
+vault_agent_rendered_dir: "{{ vault_dir }}/rendered"
+consul_certs_dir: /etc/consul.d/certs
+consul_dir: /etc/consul.d

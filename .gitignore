@@ -8,3 +8,5 @@
 *certs*
 variables.yml
 tokens
+test/
+.terraform

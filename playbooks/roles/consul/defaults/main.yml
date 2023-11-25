@@ -4,4 +4,8 @@ consul_certs_dir: "{{ consul_dir }}/certs"
 consul_data_dir: "/var/lib/consul"
 log_dir: "/var/log/consul"
 
+consul_certificate: "{{ consul_certs_dir }}/consul.pem"
+consul_key: "{{ consul_certs_dir }}/consul.pem"
+consul_ca: "{{ consul_certs_dir }}/consul-ca.pem"
+
 consul_version: 1.16.1-1

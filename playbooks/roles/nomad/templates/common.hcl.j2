@@ -1,4 +1,6 @@
 data_dir  = "{{ nomad_data_dir }}"
+region = "Canada"
+datacenter = "Homelab"
 
 bind_addr = "{{ ansible_default_ipv4.address }}" # the default
 
@@ -13,7 +15,7 @@ tls {
 
   ca_file   = "{{ nomad_certs_dir }}/nomad-ca.pem"
   cert_file = "{{ nomad_certs_dir }}/nomad.pem"
-  key_file  = "{{ nomad_certs_dir }}/nomad-key.pem"
+  key_file  = "{{ nomad_certs_dir }}/nomad.pem"
 }
 
 advertise {

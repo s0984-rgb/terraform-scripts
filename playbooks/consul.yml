@@ -8,12 +8,11 @@
   vars:
     server_group: "{{ groups['consul'] }}"
 - hosts: consul
-  become: yes
+  become: true
   roles:
     - gpg
     - firewalld
     - consul-server
-    - consul-template-config
   vars:
     ports:
       - 8300/tcp

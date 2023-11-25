@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+source {{ vault_agent_rendered_dir }}/logger.sh
+
+# Setup Consul address info
+export CONSUL_HTTP_ADDR="https://localhost:8501"
+export CONSUL_CLIENT_CERT="{{ consul_certificate }}"
+export CONSUL_CLIENT_KEY="{{ consul_key }}"
+export CONSUL_CACERT="{{ consul_ca }}"
+
+
+CONSUL_PID=`pidof 'consul'`
+if [ -z $CONSUL_PID ]; then
+  logError "Consul not started"
+  exit 0
+fi
+
+if [ -f ${CONSUL_CLIENT_CERT} ] && [ -f ${CONSUL_CLIENT_KEY} ] && [ -f ${CONSUL_CACERT} ]; then
+    logInfo "Reloading Consul"
+    consul reload
+else
+    logWarning "Certificates not found in {{ vault_data_dir }}"
+fi

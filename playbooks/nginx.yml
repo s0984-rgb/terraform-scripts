@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - retry
+  vars:
+    server_group: "{{ groups['nginx'] }}"
+- hosts: nginx
+  become: yes
+  roles:
+    - nginx
+    - firewalld
+  vars:
+    ports:
+      - 80/tcp

@@ -13,18 +13,28 @@ variable "pihole_url" {
 // Vault
 
 variable "VAULT_ADDR" {
-  type = string
+  type        = string
   description = "Address for Vault server"
 }
 
 variable "VAULT_TOKEN" {
-  type = string
+  type        = string
   description = "Token to authenticate against Vault server"
 }
 
 variable "VAULT_CACERT" {
-  type = string
+  type        = string
   description = "CA certificate for Vault server"
+}
+
+variable "VAULT_APPROLE_ID" {
+  type        = string
+  description = "Vault Approle role ID"
+}
+
+variable "VAULT_APPROLE_SECRET" {
+  type        = string
+  description = "Vault Approle role secret"
 }
 
 // Proxmox
